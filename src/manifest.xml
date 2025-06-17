@@ -1,0 +1,4 @@
+<manifest projecttype="ACCOUNTCUSTOMIZATION">
+  <projectname>OTP-8880-Display-SalesOrder-BasedOn-Status</projectname>
+  <frameworkversion>1.0</frameworkversion>
+</manifest>
