@@ -16,9 +16,10 @@ ${OTP-8880}:{Custom page for display sales order based on the status}
 *
 *Date Created:17-June-2025
 *
-*Description:This script is designed to create a custom form that displays sales orders requiring fulfillment or billing. It includes a Sublist
-*with multiple columns and filters, such as Status, Subsidiary, Customer, and Department, ensuring that the displayed data dynamically updates
-*based on the selected filters. 
+*Description:This script is designed to create a custom form that displays sales orders requiring 
+*fulfillment or billing. It includes a Sublist with multiple columns and filters, such as Status, 
+*Subsidiary, Customer, and Department, ensuring that the displayed data dynamically updates based
+* on the selected filters. 
 *
 ** REVISION HISTORY
  *
@@ -57,6 +58,8 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
      * @returns {serverWidget.Form} - NetSuite form object
      */
     const createForm = () => {
+      try {
+     
         let form = serverWidget.createForm({
             title: "Sales Orders to Fulfill or Bill",
         });
@@ -177,6 +180,10 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
           });
 
         return form;
+           
+      } catch (error) {
+        log.error("Error loading item record", error);
+      }
     };
 
     /**
@@ -185,11 +192,15 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
      * @param {Object} scriptContext - Suitelet request context
      */
     const applyDefaultValues = (form, scriptContext) => {
-        let params = scriptContext.request.parameters;
-        form.getField({ id: "status" }).defaultValue = params.cust_Status || "";
-        form.getField({ id: "subsi" }).defaultValue = params.cust_subsidiary || "";
-        form.getField({ id: "customers" }).defaultValue = params.cust_Customer || "";
-        form.getField({ id: "depart" }).defaultValue = params.cust_Department || "";
+      try{
+          let params = scriptContext.request.parameters;
+          form.getField({ id: "status" }).defaultValue = params.cust_Status || "";
+          form.getField({ id: "subsi" }).defaultValue = params.cust_subsidiary || "";
+          form.getField({ id: "customers" }).defaultValue = params.cust_Customer || "";
+          form.getField({ id: "depart" }).defaultValue = params.cust_Department || "";
+        } catch (error) {
+        log.error("Error loading item record", error);
+      }
     };
 
     /**
@@ -198,16 +209,20 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
      * @param {Object} scriptContext - Suitelet request context
      */
     const populateSublist = (form, scriptContext) => {
-        let params = scriptContext.request.parameters;
-        let filter = [["mainline", "is", "F"]];
+      try{
+          let params = scriptContext.request.parameters;
+          let filter = [["mainline", "is", "F"]];
 
-        if (params.cust_Status) filter.push("AND", ["status", "is", params.cust_Status]);
-        if (params.cust_Customer) filter.push("AND", ["customermain.internalid", "anyof", params.cust_Customer]);
-        if (params.cust_subsidiary) filter.push("AND", ["subsidiary", "is", params.cust_subsidiary]);
-        if (params.cust_Department) filter.push("AND", ["department", "is", params.cust_Department]);
+          if (params.cust_Status) filter.push("AND", ["status", "is", params.cust_Status]);
+          if (params.cust_Customer) filter.push("AND", ["customermain.internalid", "anyof", params.cust_Customer]);
+          if (params.cust_subsidiary) filter.push("AND", ["subsidiary", "is", params.cust_subsidiary]);
+          if (params.cust_Department) filter.push("AND", ["department", "is", params.cust_Department]);
 
-        let searchResults = executeSalesOrderSearch(filter);
-        populateSublistWithData(form.getSublist({ id: "sublistid" }), searchResults);
+          let searchResults = executeSalesOrderSearch(filter);
+          populateSublistWithData(form.getSublist({ id: "sublistid" }), searchResults);
+        } catch (error) {
+        log.error("Error loading item record", error);
+      }
     };
 
     /**
@@ -216,6 +231,7 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
      * @returns {Array} - Search results
      */
     const executeSalesOrderSearch = (filter) => {
+      try{
         return search.create({
             title: "Sales Orders to Fulfill or Bill JJ",
             id: "customsearch_jj_salesord_to_fulfill",
@@ -236,6 +252,9 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
                 { name: "fxamount", label: "Total" },
             ].map(col => search.createColumn(col)),
         }).run().getRange({ start: 0, end: 1000 });
+      } catch (error) {
+        log.error("Error loading item record", error);
+      }
     };
 
     /**
@@ -244,6 +263,7 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
      * @param {Array} searchResults - Array of search result objects
      */
     const populateSublistWithData = (sublist, searchResults) => {
+      try{
         searchResults.forEach((result, index) => {
             sublist.setSublistValue({ id: "internal_id", line: index, value: result.getValue("internalid") || "No Value" });
             sublist.setSublistValue({ id: "document_number", line: index, value: result.getValue("tranid") || "No Value" });
@@ -258,6 +278,9 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
             sublist.setSublistValue({id: "tax",line: index,value: result.getValue("taxtotal") || "No Value",});
             sublist.setSublistValue({id: "total",line: index,value: result.getValue("fxamount") || "No Value",});
         });
+        } catch (error) {
+        log.error("Error loading item record", error);
+      }
     };
 
     return { onRequest };
