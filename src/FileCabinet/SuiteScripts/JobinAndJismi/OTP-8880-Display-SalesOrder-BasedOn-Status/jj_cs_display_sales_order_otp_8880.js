@@ -4,7 +4,7 @@
  * @NModuleScope SameAccount
  */
 /**********************************************************************************************
-* 
+**************** 
 *
 *
 *
@@ -25,7 +25,9 @@ ${OTP-8880}:{Custom page for display sales order based on the status}
 ** REVISION HISTORY
  *
 * @version 1.0 17-June-2025 : Created the initial build by JJ0403
-*/
+
+**************************************************************************************************
+****************/
 define(['N/record', 'N/url','N/currentRecord'],
 /**
  * @param{record} record

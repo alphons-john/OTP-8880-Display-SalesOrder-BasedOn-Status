@@ -3,7 +3,7 @@
  * @NScriptType Suitelet
  */
 /**********************************************************************************************
-* 
+************* 
 *
 *
 *
@@ -24,7 +24,8 @@ ${OTP-8880}:{Custom page for display sales order based on the status}
 ** REVISION HISTORY
  *
 * @version 1.0 17-June-2025 : Created the initial build by JJ0403
-*/
+****************************************************************************************************
+*************/
 define(["N/log", "N/record", "N/search", "N/ui/serverWidget"], 
 /**
  * @param{log} log
@@ -211,7 +212,11 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
     const populateSublist = (form, scriptContext) => {
       try{
           let params = scriptContext.request.parameters;
-          let filter = [["mainline", "is", "F"]];
+          let filter = [["mainline", "is", "F"], 
+                          "AND", 
+                          ["cogs","is","F"], 
+                          "AND", 
+                          ["taxline","is","F"]];
 
           if (params.cust_Status) filter.push("AND", ["status", "is", params.cust_Status]);
           if (params.cust_Customer) filter.push("AND", ["customermain.internalid", "anyof", params.cust_Customer]);
@@ -247,9 +252,9 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
                 { name: "department", label: "Department" },
                 { name: "saleschannel", label: "Class" },
                 { name: "linesequencenumber", label: "Line No" },
-                { name: "formulanumeric", formula: "NVL2({taxtotal},{fxamount}-{taxtotal}/{currency.exchangerate},{fxamount})", label: "Subtotal" },
+                {name: "fxamount", label: "Sub Total"},
                 { name: "taxtotal", label: "Tax" },
-                { name: "fxamount", label: "Total" },
+                {name: "total", label: "Total"},
             ].map(col => search.createColumn(col)),
         }).run().getRange({ start: 0, end: 1000 });
       } catch (error) {
@@ -274,9 +279,9 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
             sublist.setSublistValue({id: "department",line: index,value: result.getText("department") || "No Value",});
             sublist.setSublistValue({id: "class",line: index,value: result.getValue("saleschannel") || "No Value",});
             sublist.setSublistValue({id: "lineno",line: index,value: result.getValue("linesequencenumber") || "No Value",});
-            sublist.setSublistValue({id: "subtotal",line: index,value: Number(result.getValue({ name: "formulanumeric" })).toFixed(2) || "No Value",});
+            sublist.setSublistValue({id: "subtotal",line: index,value: result.getValue("fxamount") || "No Value",});
             sublist.setSublistValue({id: "tax",line: index,value: result.getValue("taxtotal") || "No Value",});
-            sublist.setSublistValue({id: "total",line: index,value: result.getValue("fxamount") || "No Value",});
+            sublist.setSublistValue({id: "total",line: index,value: result.getValue("total") || "No Value",});
         });
         } catch (error) {
         log.error("Error loading item record", error);
