@@ -26,6 +26,7 @@ ${OTP-8880}:{Custom page for display sales order based on the status}
 * @version 1.0 17-June-2025 : Created the initial build by JJ0403
 ****************************************************************************************************
 *************/
+
 define(["N/log", "N/record", "N/search", "N/ui/serverWidget"], 
 /**
  * @param{log} log
@@ -44,11 +45,12 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
      */
     const onRequest = (scriptContext) => {
         try {
-            let form = createForm();
-            applyDefaultValues(form, scriptContext);
-            populateSublist(form, scriptContext);
-            form.addSubmitButton({ label: "Submit" });
-            scriptContext.response.writePage(form);
+            let SalesOrdform = createForm();
+            applyDefaultValues(SalesOrdform, scriptContext);
+            populateSublist(SalesOrdform, scriptContext);
+            SalesOrdform.addSubmitButton({ label: "Submit" });
+            SalesOrdform.addResetButton({label: 'Reset'});
+            scriptContext.response.writePage(SalesOrdform);
         } catch (error) {
             log.error("Error loading item record", error);
         }
@@ -61,13 +63,13 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
     const createForm = () => {
       try {
      
-        let form = serverWidget.createForm({
+        let SalesOrdform = serverWidget.createForm({
             title: "Sales Orders to Fulfill or Bill",
         });
 
-        form.clientScriptFileId = 1398;
+        SalesOrdform.clientScriptFileId = 1398;
 
-        let OpenStatus = form.addField({
+        let OpenStatus = SalesOrdform.addField({
           type: serverWidget.FieldType.SELECT,
           id: "status",
           label: "Status",
@@ -93,28 +95,28 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
           text: "Pending Billing",
         });
 
-        form.addField({
+        SalesOrdform.addField({
             type: serverWidget.FieldType.SELECT,
             id: "subsi",
             label: "Subsidiary",
             source: "subsidiary",
         });
 
-        form.addField({
+        SalesOrdform.addField({
             type: serverWidget.FieldType.SELECT,
             id: "customers",
             label: "Customer",
             source: "customer",
         });
 
-        form.addField({
+        SalesOrdform.addField({
             type: serverWidget.FieldType.SELECT,
             id: "depart",
             label: "Department",
             source: "department",
         });
 
-        let sublist = form.addSublist({
+        let sublist = SalesOrdform.addSublist({
             id: "sublistid",
             type: serverWidget.SublistType.INLINEEDITOR,
             label: "Sales orders that need to be fulfilled or billed",
@@ -160,11 +162,6 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
             label: "Class",
           });
           sublist.addField({
-            id: "lineno",
-            type: serverWidget.FieldType.TEXT,
-            label: "Line No",
-          });
-          sublist.addField({
             id: "subtotal",
             type: serverWidget.FieldType.TEXT,
             label: "subtotal",
@@ -180,7 +177,7 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
             label: "Total",
           });
 
-        return form;
+        return SalesOrdform;
            
       } catch (error) {
         log.error("Error loading item record", error);
@@ -192,13 +189,13 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
      * @param {serverWidget.Form} form - NetSuite form object
      * @param {Object} scriptContext - Suitelet request context
      */
-    const applyDefaultValues = (form, scriptContext) => {
+    const applyDefaultValues = (SalesOrdform, scriptContext) => {
       try{
           let params = scriptContext.request.parameters;
-          form.getField({ id: "status" }).defaultValue = params.cust_Status || "";
-          form.getField({ id: "subsi" }).defaultValue = params.cust_subsidiary || "";
-          form.getField({ id: "customers" }).defaultValue = params.cust_Customer || "";
-          form.getField({ id: "depart" }).defaultValue = params.cust_Department || "";
+          SalesOrdform.getField({ id: "status" }).defaultValue = params.cust_Status || "";
+          SalesOrdform.getField({ id: "subsi" }).defaultValue = params.cust_subsidiary || "";
+          SalesOrdform.getField({ id: "customers" }).defaultValue = params.cust_Customer || "";
+          SalesOrdform.getField({ id: "depart" }).defaultValue = params.cust_Department || "";
         } catch (error) {
         log.error("Error loading item record", error);
       }
@@ -209,14 +206,10 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
      * @param {serverWidget.Form} form - NetSuite form object
      * @param {Object} scriptContext - Suitelet request context
      */
-    const populateSublist = (form, scriptContext) => {
+    const populateSublist = (SalesOrdform, scriptContext) => {
       try{
           let params = scriptContext.request.parameters;
-          let filter = [["mainline", "is", "F"], 
-                          "AND", 
-                          ["cogs","is","F"], 
-                          "AND", 
-                          ["taxline","is","F"]];
+          let filter = [["mainline", "is", "T"], ];
 
           if (params.cust_Status) filter.push("AND", ["status", "is", params.cust_Status]);
           if (params.cust_Customer) filter.push("AND", ["customermain.internalid", "anyof", params.cust_Customer]);
@@ -224,7 +217,7 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
           if (params.cust_Department) filter.push("AND", ["department", "is", params.cust_Department]);
 
           let searchResults = executeSalesOrderSearch(filter);
-          populateSublistWithData(form.getSublist({ id: "sublistid" }), searchResults);
+          populateSublistWithData(SalesOrdform.getSublist({ id: "sublistid" }), searchResults);
         } catch (error) {
         log.error("Error loading item record", error);
       }
@@ -251,8 +244,12 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
                 { name: "subsidiary", label: "Subsidiary" },
                 { name: "department", label: "Department" },
                 { name: "saleschannel", label: "Class" },
-                { name: "linesequencenumber", label: "Line No" },
-                {name: "fxamount", label: "Sub Total"},
+                {
+                name: "formulanumeric",
+                formula:
+                  "NVL2({taxtotal},{fxamount} - {taxtotal}/{currency.exchangerate},{fxamount})",
+                label: "Subtotal",
+                },
                 { name: "taxtotal", label: "Tax" },
                 {name: "total", label: "Total"},
             ].map(col => search.createColumn(col)),
@@ -278,8 +275,8 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
             sublist.setSublistValue({id: "subsidiary",line: index, value: result.getText("subsidiary") || "No Value",});
             sublist.setSublistValue({id: "department",line: index,value: result.getText("department") || "No Value",});
             sublist.setSublistValue({id: "class",line: index,value: result.getValue("saleschannel") || "No Value",});
-            sublist.setSublistValue({id: "lineno",line: index,value: result.getValue("linesequencenumber") || "No Value",});
-            sublist.setSublistValue({id: "subtotal",line: index,value: result.getValue("fxamount") || "No Value",});
+            sublist.setSublistValue({id: "subtotal",line: index,value:Number(result.getValue({ name: "formulanumeric" })).toFixed(2)||'No Value'
+            });
             sublist.setSublistValue({id: "tax",line: index,value: result.getValue("taxtotal") || "No Value",});
             sublist.setSublistValue({id: "total",line: index,value: result.getValue("total") || "No Value",});
         });

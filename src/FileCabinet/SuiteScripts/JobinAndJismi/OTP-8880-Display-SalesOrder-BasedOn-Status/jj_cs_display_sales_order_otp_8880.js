@@ -37,33 +37,28 @@ define(['N/record', 'N/url','N/currentRecord'],
 function(record, url,currentRecord) {
     
 
+
     /**
-     * Function to be executed when field is changed.
-     *
-     * @param {Object} scriptContext
-     * @param {Record} scriptContext.currentRecord - Current form record
-     * @param {string} scriptContext.sublistId - Sublist name
-     * @param {string} scriptContext.fieldId - Field name
-     * @param {number} scriptContext.lineNum - Line number. Will be undefined if not a sublist or matrix field
-     * @param {number} scriptContext.columnNum - Line number. Will be undefined if not a matrix field
-     *
-     * @since 2015.2
-     */
-    function fieldChanged(scriptContext) {
+      * Validation function to be executed when record is saved.
+      *
+      * @param {Object} scriptContext
+      * @param {Record} scriptContext.currentRecord - Current form record
+      * @returns {boolean} Return true if record is valid
+      *
+      * @since 2015.2
+      */
+        function saveRecord(scriptContext) {
         try {
             
-            console.log("fieldChanged triggered");
-            let fieldId = scriptContext.fieldId;
             let curRecord = scriptContext.currentRecord;
 
-            if(fieldId === 'subsi'||fieldId === 'customers'||fieldId === 'status'||fieldId === 'depart'){
                 let suiteletUrl = generateSuiteletUrl(curRecord);
                 navigateToSuitelet(suiteletUrl);
-            }
         } catch (error) {
             log.error("Error loading item record", error);
         }
     }
+
 
     /**
      * Generates the Suitelet URL with necessary parameters.
@@ -87,16 +82,23 @@ function(record, url,currentRecord) {
         }
     }
 
+
     /**
      * Redirects to the generated Suitelet URL.
      * @param {string} suiteletUrl - URL to navigate to
      */
     function navigateToSuitelet(suiteletUrl) {
-        window.location.href = suiteletUrl;
+        try{
+            window.onbeforeunload = null; 
+            window.location.href = suiteletUrl;
+        } catch (error) {
+            log.error("Error loading item record", error);
+        }
     }
 
     return {
-        fieldChanged: fieldChanged
+            saveRecord: saveRecord,
+
     };
 
 });
