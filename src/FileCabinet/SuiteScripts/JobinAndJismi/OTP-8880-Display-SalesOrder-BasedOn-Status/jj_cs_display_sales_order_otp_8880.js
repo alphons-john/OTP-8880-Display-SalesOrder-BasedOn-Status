@@ -71,10 +71,10 @@ function(record, url,currentRecord) {
                 scriptId: 'customscript_jj_sl_display_sales_order',
                 deploymentId: 'customdeploy_jj_sl_display_sales_order',
                 params: {
-                    'cust_subsidiary': curRecord.getValue('subsi'),
-                    'cust_Customer': curRecord.getValue('customers'),
-                    'cust_Status': curRecord.getValue('status'),
-                    'cust_Department': curRecord.getValue('depart')
+                    'cust_subsidiary': curRecord.getValue('custpage_subsi'),
+                    'cust_Customer': curRecord.getValue('custpage_customers'),
+                    'cust_Status': curRecord.getValue('custpage_status'),
+                    'cust_Department': curRecord.getValue('custpage_depart')
                 }
             });
         } catch (error) {

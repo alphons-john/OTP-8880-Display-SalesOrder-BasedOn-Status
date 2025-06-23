@@ -71,7 +71,7 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
 
         let OpenStatus = SalesOrdform.addField({
           type: serverWidget.FieldType.SELECT,
-          id: "status",
+          id: "custpage_status",
           label: "Status",
         });
         OpenStatus.addSelectOption({
@@ -97,82 +97,82 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
 
         SalesOrdform.addField({
             type: serverWidget.FieldType.SELECT,
-            id: "subsi",
+            id: "custpage_subsi",
             label: "Subsidiary",
             source: "subsidiary",
         });
 
         SalesOrdform.addField({
             type: serverWidget.FieldType.SELECT,
-            id: "customers",
+            id: "custpage_customers",
             label: "Customer",
             source: "customer",
         });
 
         SalesOrdform.addField({
             type: serverWidget.FieldType.SELECT,
-            id: "depart",
+            id: "custpage_depart",
             label: "Department",
             source: "department",
         });
 
         let sublist = SalesOrdform.addSublist({
-            id: "sublistid",
+            id: "custpage_sublistid",
             type: serverWidget.SublistType.INLINEEDITOR,
             label: "Sales orders that need to be fulfilled or billed",
         });
           sublist.addField({
-            id: "internal_id",
+            id: "custpage_internal_id",
             type: serverWidget.FieldType.TEXT,
             label: "Internal ID",
           });
           sublist.addField({
-            id: "document_number",
+            id: "custpage_document_number",
             type: serverWidget.FieldType.TEXT,
             label: "Document Number",
           });
           sublist.addField({
-            id: "date",
+            id: "custpage_date",
             type: serverWidget.FieldType.TEXT,
             label: "Date",
           });
           sublist.addField({
-            id: "status",
+            id: "custpage_statuses",
             type: serverWidget.FieldType.TEXT,
             label: "Status",
           });
           sublist.addField({
-            id: "customer_name",
+            id: "custpage_customer_name",
             type: serverWidget.FieldType.TEXT,
             label: "Customer Name",
           });
           sublist.addField({
-            id: "subsidiary",
+            id: "custpage_subsidiary",
             type: serverWidget.FieldType.TEXT,
             label: "Subsidiary",
           });
           sublist.addField({
-            id: "department",
+            id: "custpage_department",
             type: serverWidget.FieldType.TEXT,
             label: "Department",
           });
           sublist.addField({
-            id: "class",
+            id: "custpage_class",
             type: serverWidget.FieldType.TEXT,
             label: "Class",
           });
           sublist.addField({
-            id: "subtotal",
+            id: "custpage_subtotal",
             type: serverWidget.FieldType.TEXT,
             label: "subtotal",
           });
           sublist.addField({
-            id: "tax",
+            id: "custpage_tax",
             type: serverWidget.FieldType.TEXT,
             label: "Tax",
           });
           sublist.addField({
-            id: "total",
+            id: "custpage_total",
             type: serverWidget.FieldType.TEXT,
             label: "Total",
           });
@@ -217,7 +217,7 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
           if (params.cust_Department) filter.push("AND", ["department", "is", params.cust_Department]);
 
           let searchResults = executeSalesOrderSearch(filter);
-          populateSublistWithData(SalesOrdform.getSublist({ id: "sublistid" }), searchResults);
+          populateSublistWithData(SalesOrdform.getSublist({ id: "custpage_sublistid" }), searchResults);
         } catch (error) {
         log.error("Error loading item record", error);
       }
@@ -267,18 +267,18 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
     const populateSublistWithData = (sublist, searchResults) => {
       try{
         searchResults.forEach((result, index) => {
-            sublist.setSublistValue({ id: "internal_id", line: index, value: result.getValue("internalid") || "No Value" });
-            sublist.setSublistValue({ id: "document_number", line: index, value: result.getValue("tranid") || "No Value" });
-            sublist.setSublistValue({ id: "date", line: index, value: result.getValue("trandate") || "No Value" });
-            sublist.setSublistValue({ id: "status", line: index, value: result.getValue("statusref") || "No Value" });
-            sublist.setSublistValue({id: "customer_name",line: index, value: result.getValue({ name: "entityid", join: "customerMain" }) || "No Value"});
-            sublist.setSublistValue({id: "subsidiary",line: index, value: result.getText("subsidiary") || "No Value",});
-            sublist.setSublistValue({id: "department",line: index,value: result.getText("department") || "No Value",});
-            sublist.setSublistValue({id: "class",line: index,value: result.getValue("saleschannel") || "No Value",});
-            sublist.setSublistValue({id: "subtotal",line: index,value:Number(result.getValue({ name: "formulanumeric" })).toFixed(2)||'No Value'
+            sublist.setSublistValue({ id: "custpage_internal_id", line: index, value: result.getValue("internalid") || "No Value" });
+            sublist.setSublistValue({ id: "custpage_document_number", line: index, value: result.getValue("tranid") || "No Value" });
+            sublist.setSublistValue({ id: "custpage_date", line: index, value: result.getValue("trandate") || "No Value" });
+            sublist.setSublistValue({ id: "custpage_status", line: index, value: result.getValue("statusref") || "No Value" });
+            sublist.setSublistValue({id: "custpage_customer_name",line: index, value: result.getValue({ name: "entityid", join: "customerMain" }) || "No Value"});
+            sublist.setSublistValue({id: "custpage_subsidiary",line: index, value: result.getText("subsidiary") || "No Value",});
+            sublist.setSublistValue({id: "custpage_department",line: index,value: result.getText("department") || "No Value",});
+            sublist.setSublistValue({id: "custpage_class",line: index,value: result.getValue("saleschannel") || "No Value",});
+            sublist.setSublistValue({id: "custpage_subtotal",line: index,value:Number(result.getValue({ name: "formulanumeric" })).toFixed(2)||'No Value'
             });
-            sublist.setSublistValue({id: "tax",line: index,value: result.getValue("taxtotal") || "No Value",});
-            sublist.setSublistValue({id: "total",line: index,value: result.getValue("total") || "No Value",});
+            sublist.setSublistValue({id: "custpage_tax",line: index,value: result.getValue("taxtotal") || "No Value",});
+            sublist.setSublistValue({id: "custpage_total",line: index,value: result.getValue("total") || "No Value",});
         });
         } catch (error) {
         log.error("Error loading item record", error);
