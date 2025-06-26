@@ -252,8 +252,8 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
                 { name: "subsidiary", summary: "GROUP", label: "Subsidiary" },
                 { name: "department", summary: "GROUP", label: "Department" },
                 { name: "saleschannel", summary: "GROUP", label: "Class" },
-                { name: "taxtotal",summary: "SUM", label: "Amount (Transaction Tax Total)"},
-                { name: "total", summary: "SUM", label: "Amount (Transaction Total)"},
+                { name: "taxtotal",summary: "MAX", label: "Amount (Transaction Tax Total)"},
+                { name: "total", summary: "MAX", label: "Amount (Transaction Total)"},
                 {name: "grossamount", summary: "SUM", label: "Amount (Gross)"}
             ].map(col => search.createColumn(col)),
         }).run().getRange({ start: 0, end: 1000 });
@@ -280,8 +280,8 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
             sublist.setSublistValue({id: "custpage_class",line: index,value: result.getValue({name: "saleschannel",summary: "GROUP"}) || "No Value",});
             sublist.setSublistValue({id: "custpage_subtotal",line: index,value:result.getValue({name: "grossamount",summary: "SUM"})||'No Value'
             });
-            sublist.setSublistValue({id: "custpage_tax",line: index,value: result.getValue({name: "taxtotal",summary: "SUM"}) || "No Value",});
-            sublist.setSublistValue({id: "custpage_total",line: index,value: result.getValue({name: "total",summary: "SUM"}) || "No Value",});
+            sublist.setSublistValue({id: "custpage_tax",line: index,value: result.getValue({name: "taxtotal",summary: "MAX"}) || "No Value",});
+            sublist.setSublistValue({id: "custpage_total",line: index,value: result.getValue({name: "total",summary: "MAX"}) || "No Value",});
         });
         } catch (error) {
         log.error("Error loading item record", error);
