@@ -73,7 +73,7 @@ function(record, url,currentRecord) {
                 params: {
                     'cust_subsidiary': curRecord.getValue('custpage_subsi'),
                     'cust_Customer': curRecord.getValue('custpage_customers'),
-                    'cust_Status': curRecord.getValue('custpage_status'),
+                    'cust_Status': curRecord.getValue('custpage_statuses'),
                     'cust_Department': curRecord.getValue('custpage_depart')
                 }
             });

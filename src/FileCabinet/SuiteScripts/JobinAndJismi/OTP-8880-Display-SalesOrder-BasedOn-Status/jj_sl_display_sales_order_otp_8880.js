@@ -71,7 +71,7 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
 
         let OpenStatus = SalesOrdform.addField({
           type: serverWidget.FieldType.SELECT,
-          id: "custpage_status",
+          id: "custpage_statuses",
           label: "Status",
         });
         OpenStatus.addSelectOption({
@@ -137,7 +137,7 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
             label: "Date",
           });
           sublist.addField({
-            id: "custpage_statuses",
+            id: "custpage_status",
             type: serverWidget.FieldType.TEXT,
             label: "Status",
           });
@@ -192,10 +192,10 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
     const applyDefaultValues = (SalesOrdform, scriptContext) => {
       try{
           let params = scriptContext.request.parameters;
-          SalesOrdform.getField({ id: "status" }).defaultValue = params.cust_Status || "";
-          SalesOrdform.getField({ id: "subsi" }).defaultValue = params.cust_subsidiary || "";
-          SalesOrdform.getField({ id: "customers" }).defaultValue = params.cust_Customer || "";
-          SalesOrdform.getField({ id: "depart" }).defaultValue = params.cust_Department || "";
+          SalesOrdform.getField({ id: "custpage_statuses" }).defaultValue = params.cust_Status || "";
+          SalesOrdform.getField({ id: "custpage_subsi" }).defaultValue = params.cust_subsidiary || "";
+          SalesOrdform.getField({ id: "custpage_customers" }).defaultValue = params.cust_Customer || "";
+          SalesOrdform.getField({ id: "custpage_depart" }).defaultValue = params.cust_Department || "";
         } catch (error) {
         log.error("Error loading item record", error);
       }
@@ -209,7 +209,15 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
     const populateSublist = (SalesOrdform, scriptContext) => {
       try{
           let params = scriptContext.request.parameters;
-          let filter = [["mainline", "is", "T"], ];
+          let filter = [ ["mainline","is","F"], 
+                        "AND", 
+                        ["taxline","is","F"], 
+                        "AND", 
+                        ["shipping","is","F"], 
+                        "AND", 
+                        ["cogs","is","F"], 
+                        "AND", 
+                        ["item.type","noneof","Discount"] ];
 
           if (params.cust_Status) filter.push("AND", ["status", "is", params.cust_Status]);
           if (params.cust_Customer) filter.push("AND", ["customermain.internalid", "anyof", params.cust_Customer]);
@@ -236,22 +244,17 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
             type: "salesorder",
             filters: filter,
             columns: [
-                { name: "internalid", label: "Internal ID" },
-                { name: "tranid", label: "Document Number" },
-                { name: "trandate", label: "Date" },
-                { name: "statusref", label: "Status" },
-                { name: "entityid", join: "customerMain", label: "Customer Name" },
-                { name: "subsidiary", label: "Subsidiary" },
-                { name: "department", label: "Department" },
-                { name: "saleschannel", label: "Class" },
-                {
-                name: "formulanumeric",
-                formula:
-                  "NVL2({taxtotal},{fxamount} - {taxtotal}/{currency.exchangerate},{fxamount})",
-                label: "Subtotal",
-                },
-                { name: "taxtotal", label: "Tax" },
-                {name: "total", label: "Total"},
+                { name: "internalid",summary: "GROUP", label: "Internal ID" },
+                { name: "tranid", summary: "GROUP", label: "Document Number" },
+                { name: "trandate", summary: "GROUP", label: "Date" },
+                { name: "statusref", summary: "GROUP", label: "Status" },
+                { name: "entityid", summary: "GROUP", join: "customerMain", label: "Customer Name" },
+                { name: "subsidiary", summary: "GROUP", label: "Subsidiary" },
+                { name: "department", summary: "GROUP", label: "Department" },
+                { name: "saleschannel", summary: "GROUP", label: "Class" },
+                { name: "taxtotal",summary: "SUM", label: "Amount (Transaction Tax Total)"},
+                { name: "total", summary: "SUM", label: "Amount (Transaction Total)"},
+                {name: "grossamount", summary: "SUM", label: "Amount (Gross)"}
             ].map(col => search.createColumn(col)),
         }).run().getRange({ start: 0, end: 1000 });
       } catch (error) {
@@ -267,18 +270,18 @@ define(["N/log", "N/record", "N/search", "N/ui/serverWidget"],
     const populateSublistWithData = (sublist, searchResults) => {
       try{
         searchResults.forEach((result, index) => {
-            sublist.setSublistValue({ id: "custpage_internal_id", line: index, value: result.getValue("internalid") || "No Value" });
-            sublist.setSublistValue({ id: "custpage_document_number", line: index, value: result.getValue("tranid") || "No Value" });
-            sublist.setSublistValue({ id: "custpage_date", line: index, value: result.getValue("trandate") || "No Value" });
-            sublist.setSublistValue({ id: "custpage_status", line: index, value: result.getValue("statusref") || "No Value" });
-            sublist.setSublistValue({id: "custpage_customer_name",line: index, value: result.getValue({ name: "entityid", join: "customerMain" }) || "No Value"});
-            sublist.setSublistValue({id: "custpage_subsidiary",line: index, value: result.getText("subsidiary") || "No Value",});
-            sublist.setSublistValue({id: "custpage_department",line: index,value: result.getText("department") || "No Value",});
-            sublist.setSublistValue({id: "custpage_class",line: index,value: result.getValue("saleschannel") || "No Value",});
-            sublist.setSublistValue({id: "custpage_subtotal",line: index,value:Number(result.getValue({ name: "formulanumeric" })).toFixed(2)||'No Value'
+            sublist.setSublistValue({ id: "custpage_internal_id", line: index, value: result.getValue({name: "internalid",summary: "GROUP"}) || "No Value" });
+            sublist.setSublistValue({ id: "custpage_document_number", line: index, value: result.getValue({name: "tranid",summary: "GROUP"}) || "No Value" });
+            sublist.setSublistValue({ id: "custpage_date", line: index, value: result.getValue({name: "trandate",summary: "GROUP"}) || "No Value" });
+            sublist.setSublistValue({ id: "custpage_status", line: index, value: result.getText({name: "statusref",summary: "GROUP"}) || "No Value" });
+            sublist.setSublistValue({id: "custpage_customer_name",line: index, value: result.getValue({ name: "entityid",summary: "GROUP", join: "customerMain" }) || "No Value"});
+            sublist.setSublistValue({id: "custpage_subsidiary",line: index, value: result.getText({name: "subsidiary",summary: "GROUP"}) || "No Value",});
+            sublist.setSublistValue({id: "custpage_department",line: index,value: result.getText({name: "department",summary: "GROUP"}) || "No Value",});
+            sublist.setSublistValue({id: "custpage_class",line: index,value: result.getValue({name: "saleschannel",summary: "GROUP"}) || "No Value",});
+            sublist.setSublistValue({id: "custpage_subtotal",line: index,value:result.getValue({name: "grossamount",summary: "SUM"})||'No Value'
             });
-            sublist.setSublistValue({id: "custpage_tax",line: index,value: result.getValue("taxtotal") || "No Value",});
-            sublist.setSublistValue({id: "custpage_total",line: index,value: result.getValue("total") || "No Value",});
+            sublist.setSublistValue({id: "custpage_tax",line: index,value: result.getValue({name: "taxtotal",summary: "SUM"}) || "No Value",});
+            sublist.setSublistValue({id: "custpage_total",line: index,value: result.getValue({name: "total",summary: "SUM"}) || "No Value",});
         });
         } catch (error) {
         log.error("Error loading item record", error);
